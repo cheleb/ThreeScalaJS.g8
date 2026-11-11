@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  CI:
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup JVM
+        uses: actions/setup-java@v6
+        with:
+          java-version: "25"
+          distribution: "zulu"
+          cache: "sbt"
+      - name: Install sbt
+        uses: sbt/setup-sbt@v1
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 23
+      - name: Cache SBT
+        uses: actions/cache@v6
+        with:
+            path: |
+              ~/.ivy2/cache
+              ~/.ivy2/local
+              **/target/**
+              ~/.sbt
+            key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt', 'project/*.sbt', 'project/*.scala') }}
+            restore-keys: |
+              ${{ runner.os }}-sbt-
+      - name: Cache node
+        uses: actions/cache@v6
+        with:
+            path: |
+              examples/client/node_modules
+            key: ${{ runner.os }}-node-${{ hashFiles('example/client/package.json') }}
+  
+      - name: Install dependencies
+        run: |
+          cd example/client
+          npm i
+      # - name: Tests
+      #   run: sbt +test
+      - name: example/dist
+        run: DEV=prod sbt "client/fastLinkJS"
+      - name: g8 template
+        run: |
+          sbt test
+      - name: Test it
+        run: |
+          sbt new file://. --name=rara --force
