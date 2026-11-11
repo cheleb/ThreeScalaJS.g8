@@ -2,3 +2,5 @@ target/
 .bsp/
 .bloop/
 .metals/
+
+ci-test/

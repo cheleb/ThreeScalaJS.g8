@@ -53,4 +53,6 @@ jobs:
           sbt test
       - name: Test it
         run: |
-          sbt new file://. --name=rara --force
+          sbt new file://$(pwd) --name="ci test" --force
+          cd ci-test
+          sbt test
